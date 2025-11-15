@@ -23,8 +23,12 @@ import tiktoken
 from camel.messages import OpenAIMessage
 from camel.typing import ModelType, TaskType
 
-import vertexai
-from vertexai.preview.generative_models import GenerativeModel
+try:
+    import vertexai
+    from vertexai.preview.generative_models import GenerativeModel
+    VERTEXAI_AVAILABLE = True
+except ImportError:
+    VERTEXAI_AVAILABLE = False
 
 
 F = TypeVar('F', bound=Callable[..., Any])
@@ -60,6 +64,8 @@ def count_tokens_openai_chat_models(
 def count_tokens_gemini_chat_models(
         messages: List[OpenAIMessage],
 ) -> int:
+    if not VERTEXAI_AVAILABLE:
+        raise ImportError("Vertex AI is not available. Please install google-cloud-aiplatform package.")
     model = GenerativeModel("gemini-pro")
     num_tokens = 0
     for message in messages:
