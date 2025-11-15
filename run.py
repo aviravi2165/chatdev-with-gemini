@@ -100,6 +100,35 @@ args2type = {'GPT_3_5_TURBO': ModelType.GPT_3_5_TURBO,
 if openai_new_api:
     args2type['GPT_3_5_TURBO'] = ModelType.GPT_3_5_TURBO_NEW
 
+# Get the model type for API key validation
+model_type = args2type[args.model]
+
+# ----------------------------------------
+#          API Key Validation
+# ----------------------------------------
+# Check for required API keys based on model type
+if model_type in {
+    ModelType.GPT_3_5_TURBO,
+    ModelType.GPT_3_5_TURBO_NEW,
+    ModelType.GPT_4,
+    ModelType.GPT_4_32k,
+    ModelType.GPT_4_TURBO,
+    ModelType.GPT_4_TURBO_V,
+}:
+    if 'OPENAI_API_KEY' not in os.environ:
+        print("Error: OpenAI API key not found.")
+        print("Please set the OPENAI_API_KEY environment variable:")
+        print("  On Unix/Linux: export OPENAI_API_KEY=\"your_OpenAI_API_key\"")
+        print("  On Windows: $env:OPENAI_API_KEY=\"your_OpenAI_API_key\"")
+        sys.exit(1)
+elif model_type == ModelType.GEMINI_PRO:
+    if 'GEMINI_API_KEY' not in os.environ:
+        print("Error: Gemini API key not found.")
+        print("Please set the GEMINI_API_KEY environment variable:")
+        print("  On Unix/Linux: export GEMINI_API_KEY=\"your_Gemini_API_key\"")
+        print("  On Windows: $env:GEMINI_API_KEY=\"your_Gemini_API_key\"")
+        sys.exit(1)
+
 chat_chain = ChatChain(config_path=config_path,
                        config_phase_path=config_phase_path,
                        config_role_path=config_role_path,

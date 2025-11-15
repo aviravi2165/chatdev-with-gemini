@@ -44,12 +44,12 @@ import os
 if 'OPENAI_API_KEY' in os.environ:
     OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
 else:
-    BASE_URL = None
+    OPENAI_API_KEY = None
 
 if 'GEMINI_API_KEY' in os.environ:
     GEMINI_API_KEY = os.environ['GEMINI_API_KEY']
 else:
-    BASE_URL = None
+    GEMINI_API_KEY = None
 
 if 'BASE_URL' in os.environ:
     BASE_URL = os.environ['BASE_URL']
@@ -82,6 +82,16 @@ class OpenAIModel(ModelBackend):
         super().__init__()
         self.model_type = model_type
         self.model_config_dict = model_config_dict
+        
+        # Check if OpenAI API key is available
+        if OPENAI_API_KEY is None:
+            raise ValueError(
+                "OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.\n"
+                "You can set it by running:\n"
+                "export OPENAI_API_KEY=\"your_OpenAI_API_key\"\n"
+                "Or for Windows:\n"
+                "$env:OPENAI_API_KEY=\"your_OpenAI_API_key\""
+            )
 
     def run(self, *args, **kwargs):
         string = "\n".join([message["content"] for message in kwargs["messages"]])
@@ -174,6 +184,17 @@ class GeminiModel(ModelBackend):
             raise ImportError("Vertex AI is not available. Please install google-cloud-aiplatform package.")
         self.model_type = model_type
         self.model_config_dict = model_config_dict
+        
+        # Check if Gemini API key is available
+        if GEMINI_API_KEY is None:
+            raise ValueError(
+                "Gemini API key not found. Please set the GEMINI_API_KEY environment variable.\n"
+                "You can set it by running:\n"
+                "export GEMINI_API_KEY=\"your_Gemini_API_key\"\n"
+                "Or for Windows:\n"
+                "$env:GEMINI_API_KEY=\"your_Gemini_API_key\""
+            )
+        
         vertexai.init()
 
     def run(self, *args, **kwargs):
