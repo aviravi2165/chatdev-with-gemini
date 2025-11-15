@@ -14,6 +14,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
+import httpx
 import openai
 import tiktoken
 
@@ -92,15 +93,16 @@ class OpenAIModel(ModelBackend):
 
         if openai_new_api:
             # Experimental, add base_url
+            http_client = httpx.Client()
+
+            client_kwargs = {
+                "api_key": OPENAI_API_KEY,
+                "http_client": http_client,
+            }
             if BASE_URL:
-                client = openai.OpenAI(
-                    api_key=OPENAI_API_KEY,
-                    base_url=BASE_URL,
-                )
-            else:
-                client = openai.OpenAI(
-                    api_key=OPENAI_API_KEY
-                )
+                client_kwargs["base_url"] = BASE_URL
+
+            client = openai.OpenAI(**client_kwargs)
 
             num_max_token_map = {
                 "gpt-3.5-turbo": 4096,
@@ -117,8 +119,15 @@ class OpenAIModel(ModelBackend):
             num_max_completion_tokens = num_max_token - num_prompt_tokens
             self.model_config_dict['max_tokens'] = num_max_completion_tokens
 
-            response = client.chat.completions.create(*args, **kwargs, model=self.model_type.value,
-                                                      **self.model_config_dict)
+            try:
+                response = client.chat.completions.create(
+                    *args,
+                    **kwargs,
+                    model=self.model_type.value,
+                    **self.model_config_dict,
+                )
+            finally:
+                client.close()
 
             cost = prompt_cost(
                 self.model_type.value,
